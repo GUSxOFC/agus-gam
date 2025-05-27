@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Telegram Bot Interaction Tool</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px 10px;
+    height: 100vh;
+    max-height: 600px;
+    overflow: hidden;
+  }
+  h1 {
+    font-weight: 600;
+    margin-bottom: 10px;
+    font-size: 1.6rem;
+    text-align: center;
+  }
+  main {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 15px 20px;
+    width: 100%;
+    max-width: 350px;
+    flex: 1 1 auto;
+    overflow-y: auto;
+  }
+  section {
+    margin-bottom: 20px;
+  }
+  section:last-child {
+    margin-bottom: 0;
+  }
+  h2 {
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+    color: #dcd6f7;
+  }
+  p {
+    font-size: 0.85rem;
+    line-height: 1.3;
+    margin: 6px 0 14px 0;
+    color: #e5e0ffcc;
+  }
+  label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 6px;
+    font-size: 0.9rem;
+  }
+  input[type="text"], input[type="password"], textarea {
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: none;
+    outline: none;
+    font-size: 0.95rem;
+    font-family: 'Poppins', sans-serif;
+    margin-bottom: 12px;
+    resize: vertical;
+  }
+  textarea {
+    min-height: 80px;
+    max-height: 120px;
+  }
+  button {
+    background-color: #9f7aea;
+    border: none;
+    padding: 12px 0;
+    border-radius: 12px;
+    color: white;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    width: 100%;
+    transition: background-color 0.3s ease;
+    user-select: none;
+  }
+  button:active {
+    background-color: #7c3aed;
+  }
+  button:disabled {
+    background-color: #a084dc88;
+    cursor: not-allowed;
+  }
+  #response {
+    background: rgba(255, 255, 255, 0.15);
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    min-height: 60px;
+    max-height: 150px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    color: #f0f0f0;
+    font-family: monospace;
+  }
+  .input-group {
+    position: relative;
+  }
+  .toggle-password {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    background: none;
+    border: none;
+    color: #ccc;
+    font-size: 0.9rem;
+    cursor: pointer;
+    user-select: none;
+  }
+  .toggle-password:hover {
+    color: white;
+  }
+  @media (max-width: 350px) {
+    main {
+      padding: 12px 15px;
+    }
+    h1 {
+      font-size: 1.4rem;
+    }
+  }
+</style>
+</head>
+<body>
+<h1>Telegram Bot Interaction Tool</h1>
+<main>
+  <section>
+    <h2>How to create a Telegram Bot</h2>
+    <p>
+      1. Open Telegram and search for <code>@BotFather</code>.<br>
+      2. Start a chat and send <code>/newbot</code> command.<br>
+      3. Follow BotFather instructions to name your bot and get a <b>bot token</b>.<br>
+      4. Copy the token below and use it in this tool.
+    </p>
+  </section>
+
+  <section>
+    <label for="botToken">Bot Token</label>
+    <div class="input-group">
+      <input type="password" id="botToken" placeholder="Paste your bot token here" autocomplete="off" />
+      <button type="button" class="toggle-password" aria-label="Toggle token visibility">Show</button>
+    </div>
+  </section>
+
+  <section>
+    <label for="chatId">Chat ID</label>
+    <input type="text" id="chatId" placeholder="Enter recipient chat ID" autocomplete="off" />
+    <p style="font-size: 0.75rem; color: #ddd;">You can get chat ID by messaging your bot and checking updates, or using @userinfobot.</p>
+  </section>
+
+  <section>
+    <label for="message">Message</label>
+    <textarea id="message" placeholder="Type your message here..."></textarea>
+    <button id="sendBtn" disabled>Send Message</button>
+  </section>
+
+  <section>
+    <h2>Response</h2>
+    <pre id="response" aria-live="polite" aria-atomic="true"></pre>
+  </section>
+</main>
+
+<script>
+  (function(){
+    const botTokenInput = document.getElementById('botToken');
+    const chatIdInput = document.getElementById('chatId');
+    const messageInput = document.getElementById('message');
+    const sendBtn = document.getElementById('sendBtn');
+    const responseBox = document.getElementById('response');
+    const togglePasswordBtn = document.querySelector('.toggle-password');
+
+    function validateInputs() {
+      sendBtn.disabled = !(botTokenInput.value.trim() && chatIdInput.value.trim() && messageInput.value.trim());
+    }
+
+    botTokenInput.addEventListener('input', validateInputs);
+    chatIdInput.addEventListener('input', validateInputs);
+    messageInput.addEventListener('input', validateInputs);
+
+    togglePasswordBtn.addEventListener('click', () => {
+      if (botTokenInput.type === 'password') {
+        botTokenInput.type = 'text';
+        togglePasswordBtn.innerText = 'Hide';
+      } else {
+        botTokenInput.type = 'password';
+        togglePasswordBtn.innerText = 'Show';
+      }
+    });
+
+    async function sendMessage() {
+      sendBtn.disabled = true;
+      responseBox.textContent = 'Sending message...';
+      const token = botTokenInput.value.trim();
+      const chatId = chatIdInput.value.trim();
+      const text = messageInput.value.trim();
+
+      const url = `https://api.telegram.org/bot${encodeURIComponent(token)}/sendMessage`;
+      const payload = {
+        chat_id: chatId,
+        text: text
+      };
+
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.ok) {
+          responseBox.textContent = 'Message sent successfully!\n\n' + JSON.stringify(data.result, null, 2);
+        } else {
+          responseBox.textContent = `Error: ${data.description || 'Unknown error'}`;
+        }
+      } catch (error) {
+        responseBox.textContent = `Fetch error: ${error.message}`;
+      }
+      sendBtn.disabled = false;
+    }
+
+    sendBtn.addEventListener('click', sendMessage);
+  })();
+</script>
+</body>
+</html>
+
+
+
+
+*BUKAN HTML PHISIN*
